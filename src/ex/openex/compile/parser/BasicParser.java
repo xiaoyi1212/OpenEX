@@ -144,6 +144,19 @@ public class BasicParser {
                         if(!td.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in list statement end.", Main.output);
                         return leaf;
                     }
+                    case "throw"->{
+                        leaf = new AstThrowTree();
+                        ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                        do {
+                            td = getToken();
+                            tdds.add(td);
+                        } while (!td.getToken().equals(LexToken.Token.END));
+
+                        ((AstThrowTree) leaf).setTds(tdds);
+
+                        if(!td.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in throw statement end.", Main.output);
+                        return leaf;
+                    }
                     default -> throw new VMException("error in parser :" + td, player);
                 }
             } else throw new VMException("Unknown lexin parser:" + td,player);
@@ -245,7 +258,7 @@ public class BasicParser {
                     ats.add(leaf);
                 } else if (tdt.getData().equals("break")) {
                     ats.add(new AstBreakTree());
-                }else if(tdt.getData().equals("list")){
+                }else if(tdt.getData().equals("list")) {
                     AstListTree leaf = new AstListTree();
                     ArrayList<LexToken.TokenD> tds = new ArrayList<>();
                     do {
@@ -255,7 +268,21 @@ public class BasicParser {
 
                     ((AstListTree) leaf).setTds(tds);
 
-                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in list statement end.",Main.output);
+                    if (!tdt.getToken().equals(LexToken.Token.END))
+                        throw new VMException("Unknown lex in list statement end.", Main.output);
+
+                    ats.add(leaf);
+                }else if(tdt.getData().equals("throw")){
+                    AstThrowTree leaf = new AstThrowTree();
+                    ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                    do {
+                        tdt = getToken();
+                        tdds.add(tdt);
+                    } while (!tdt.getToken().equals(LexToken.Token.END));
+
+                    ((AstThrowTree) leaf).setTds(tdds);
+
+                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in throw statement end.", Main.output);
 
                     ats.add(leaf);
                 } else throw new VMException("error in parser :" + tdt,player);
@@ -380,6 +407,19 @@ public class BasicParser {
                     if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in list statement end.",Main.output);
 
                     ats.add(leaf);
+                }else if(tdt.getData().equals("throw")){
+                    AstThrowTree leaf = new AstThrowTree();
+                    ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                    do {
+                        tdt = getToken();
+                        tdds.add(tdt);
+                    } while (!tdt.getToken().equals(LexToken.Token.END));
+
+                    ((AstThrowTree) leaf).setTds(tdds);
+
+                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in throw statement end.", Main.output);
+
+                    ats.add(leaf);
                 } else throw new VMException("error in parser :" + tdt,player);
             }
         }while (lpbuf!=0);
@@ -487,6 +527,19 @@ public class BasicParser {
                     ((AstListTree) leaf).setTds(tds);
 
                     if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in list statement end.",Main.output);
+
+                    ats.add(leaf);
+                }else if(tdt.getData().equals("throw")){
+                    AstThrowTree leaf = new AstThrowTree();
+                    ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                    do {
+                        tdt = getToken();
+                        tdds.add(tdt);
+                    } while (!tdt.getToken().equals(LexToken.Token.END));
+
+                    ((AstThrowTree) leaf).setTds(tdds);
+
+                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in throw statement end.", Main.output);
 
                     ats.add(leaf);
                 }else throw new VMException("error in parser :"+tdt,player);

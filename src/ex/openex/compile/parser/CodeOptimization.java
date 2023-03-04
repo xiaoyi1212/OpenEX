@@ -87,15 +87,18 @@ public class CodeOptimization {
         for(OutCode oc:ocs){
             if(oc instanceof InvokeOutCode){
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((InvokeOutCode) oc).getPath()));
+
                 byte buf = const_index_ax;
-                const_index_ax += 1;
-                parser(((InvokeOutCode) oc).getValue().getBcs(),bcs);
+                const_index_ax+=1;
+                parser(((InvokeOutCode) oc).getValue().getBcs(), bcs);
                 bcs.add(new InvokeCode(buf));
-            }else if(oc instanceof PushOPStackOutCode){
-                ctt.add(new ConstTableTask(const_index_ax,((PushOPStackOutCode) oc).getType(),((PushOPStackOutCode) oc).getObj()));
+            }else if(oc instanceof PushOPStackOutCode) {
+                ctt.add(new ConstTableTask(const_index_ax, ((PushOPStackOutCode) oc).getType(), ((PushOPStackOutCode) oc).getObj()));
 
                 bcs.add(new PushCode(const_index_ax));
-                const_index_ax+= 1;
+                const_index_ax += 1;
+            }else if(oc instanceof GroupOutCode){
+                parser(((GroupOutCode) oc).getBcs(),bcs);
             }else if(oc instanceof AddOutCode)bcs.add(new AddCode());
             else if(oc instanceof SubOutCode)bcs.add(new SubCode());
             else if(oc instanceof MulOutCode)bcs.add(new MulCode());
@@ -105,6 +108,7 @@ public class CodeOptimization {
             else if(oc instanceof LessOutCode) bcs.add(new LessCode());
             else if(oc instanceof LessEquOutCode) bcs.add(new LessEquCode());
             else if(oc instanceof BigEquOutCode) bcs.add(new BigEquCode());
+            else if(oc instanceof NotOutCode)bcs.add(new NotCode());
         }
         return bcs;
     }
@@ -180,6 +184,10 @@ public class CodeOptimization {
                 out.add(new PushCode(const_index_ax));
 
                 const_index_ax+= 1;
+            }else if(oc instanceof ThrowOutCode){
+                ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((ThrowOutCode) oc).getName()));
+                out.add(new ThrowCode(const_index_ax));
+                const_index_ax += 1;
             }
         }
 
@@ -199,7 +207,6 @@ public class CodeOptimization {
 
                 byte buf = const_index_ax;
                 const_index_ax+=1;
-
                 parser(((InvokeOutCode) oc).getValue().getBcs(), out);
                 out.add(new InvokeCode(buf));
 
@@ -235,8 +242,11 @@ public class CodeOptimization {
                 out.add(new PushCode(const_index_ax));
                 const_index_ax+= 1;
                 out.add(new RetCode());
+            }else if(oc instanceof ThrowOutCode){
+                ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((ThrowOutCode) oc).getName()));
+                out.add(new ThrowCode(const_index_ax));
+                const_index_ax += 1;
             }
-
         }
         return out;
     }
