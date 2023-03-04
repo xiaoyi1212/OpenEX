@@ -1,0 +1,19 @@
+include "system";
+include "util";
+include "native";
+
+value local a:"A" = 1 + exe.system.memory();
+
+exe.system.print(a);
+exe.native.output("???");
+exe.system.print(exe.system.memory());
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,11 @@
+include "system";
+
+function th(){
+   value local c:"A" = 0;
+   value local d:"B" = 0;
+   while(c < 10001){
+      set c = c + 1;
+      set d = d + c;
+      exe.system.print(d);
+   }
+}
