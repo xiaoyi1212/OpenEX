@@ -29,10 +29,17 @@ public class IntException {
 
     public void throwError(Error_Type type, String message, BaseCode bc){
         executor.thread.status = EXThread.Status.INT;
-        Main.output.error("[线程-"+executor.thread.getName()+"]: 发生异常:"+type+"\n" +
-                "\t消息:" +message+"\n"+
-                "\t操作栈深度:"+executor.op_stack.size()+"\n" +
-                "\t错误索引:"+bc);
+        StackTraceElement[] tace = Thread.currentThread().getStackTrace();
+        StringBuilder info = new StringBuilder();
+        for (int i = 1, taceLength = tace.length; i < taceLength; i++) {
+            StackTraceElement s = tace[i];
+            info.append("\t\t" + s + "\n");
+        }
+        Main.output.error("[Thread-"+executor.thread.getName()+"]: "+message+"\n" +
+                "\tType:" +type+"\n"+
+                "\tOpStack:"+executor.op_stack.size()+"\n" +
+                "\tIndex:"+bc+"\n" +
+                "\tInvokeStack:\n"+info);
         shutdown(-1);
     }
     public void shutdown(int i){

@@ -5,7 +5,6 @@ import ex.openex.exception.InterruptException;
 import ex.exvm.obj.ExList;
 import ex.exvm.obj.ExNull;
 import ex.exvm.obj.ExObject;
-import ex.exvm.obj.ExValue;
 
 import java.util.ArrayList;
 

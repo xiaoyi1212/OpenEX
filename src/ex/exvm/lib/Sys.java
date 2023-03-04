@@ -29,6 +29,7 @@ public class Sys implements NativeLib{
     public String getName() {
         return "system";
     }
+
     private static class Print extends NativeFunction{
         @Override
         public ExObject exe(ArrayList<ExObject> values, Executor executor) {

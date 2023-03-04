@@ -149,6 +149,11 @@ public class Executor {
                 return;
             }
             push(new ExBool(Double.parseDouble(obj1.getData())<=Double.parseDouble(obj.getData())));
+        }else if(bc instanceof NotCode){
+            ExObject obj = pop();
+
+            if(!obj.getType().equals(ExObject.Type.BOOL))ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[UNKNOWN]类型不能进行‘非’逻辑运算",bc);
+            push(new ExBool(!Boolean.parseBoolean(obj.getData())));
         }
     }
 
@@ -343,6 +348,9 @@ public class Executor {
                 }else if(bc instanceof MListCode){
                     ExList ev = new ExList(executing.getTable().get(bc.getOpNum()).getExeData(), 1);
                     ScriptManager.lists.add(ev);
+                }else if(bc instanceof ThrowCode){
+                    String name = executing.getTable().get(bc.getOpNum()).getExeData();
+                    ie.throwError(IntException.Error_Type.valueOf(name),"<code_throw>",bc);
                 }
             }
         }catch (EmptyStackException e){
