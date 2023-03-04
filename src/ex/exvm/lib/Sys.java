@@ -1,12 +1,14 @@
 package ex.exvm.lib;
 
 import ex.exvm.EXThreadManager;
+import ex.exvm.exe.EXThread;
 import ex.exvm.exe.Executor;
 import ex.openex.Main;
 import ex.openex.exception.InterruptException;
 import ex.exvm.obj.*;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Sys implements NativeLib{
     ArrayList<NativeFunction> nf;
@@ -18,6 +20,7 @@ public class Sys implements NativeLib{
         nf.add(new Shutdown());
         nf.add(new Memory());
         nf.add(new Version());
+        nf.add(new Input());
     }
 
     @Override
@@ -28,6 +31,28 @@ public class Sys implements NativeLib{
     @Override
     public String getName() {
         return "system";
+    }
+
+    private static class Input extends NativeFunction{
+
+        @Override
+        public ExObject exe(ArrayList<ExObject> values, Executor executor) throws InterruptException {
+            executor.setStatus(EXThread.Status.WAIT);
+            Scanner scanner = new Scanner(System.in);
+            String name = scanner.nextLine();
+            executor.setStatus(EXThread.Status.RUNNING);
+            return new ExString(name);
+        }
+
+        @Override
+        public int getValueNum() {
+            return 0;
+        }
+
+        @Override
+        public String getName() {
+            return "input";
+        }
     }
 
     private static class Print extends NativeFunction{
