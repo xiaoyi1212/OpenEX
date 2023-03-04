@@ -6,6 +6,7 @@ import ex.openex.code.InvokeOutCode;
 import ex.openex.code.OutCode;
 import ex.openex.code.PushOPStackOutCode;
 import ex.openex.compile.LexToken;
+import ex.openex.compile.nbl.IntNBLExpression;
 import ex.openex.compile.parser.CompileFile;
 import ex.openex.exception.VMException;
 import ex.exvm.obj.*;
@@ -55,61 +56,47 @@ public class AstInvokeTree extends AstLeaf{
         td = getTokens();
         try {
             do {
-                ExObject f = null;
+
+                ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                int index = 1;
                 do {
+                    if(td.getToken().equals(LexToken.Token.LP) && td.getData().equals("(")){
+                        tds.add(td);
+                        index += 1;
+                    }
 
                     if((td.getToken().equals(LexToken.Token.SEM) && td.getData().equals(","))){
                         td = getTokens();
+                        IntNBLExpression inble = new IntNBLExpression(tds);
+                        values.add(new GroupOutCode(inble.calculate(e,inble.nblLexValue())));
+                        tds.clear();
                         continue;
                     }
 
-                    if (td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")) break;
-
-                    if (td.getToken().equals(LexToken.Token.STR)) f = new ExString(td.getData());
-                    else if (td.getToken().equals(LexToken.Token.NUM)) f = new ExInt(Integer.parseInt(td.getData()));
-                    else if (td.getToken().equals(LexToken.Token.DOUBLE))
-                        f = new ExDouble(Double.parseDouble(td.getData()));
-                    else if (td.getToken().equals(LexToken.Token.KEY)){
-                        if(e.value_names.contains(td.getData()))f = new ExValue(td.getData(),1);
-                        else if(e.all_value_names.contains(td.getData())) f = new ExValue(td.getData(),0);
-                        else if(e.list_names.contains(td.getData())) f = new ExList(td.getData(),1);
-                        else if(e.all_list_names.contains(td.getData())) f = new ExList(td.getData(),0);
-                        else throw new VMException("Not found value:"+td.getData(),Main.output);
+                    if (td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")&&index > 0){
+                        index -=1;
+                        tds.add(td);
                     }
-                    else if (td.getToken().equals(LexToken.Token.NAME)){
-                        if(td.getData().equals("true")||td.getData().equals("false"))f = new ExBool(Boolean.parseBoolean(td.getData()));
-                        else if(td.getData().equals("null"))f = new ExNull();
-                        else if(td.getData().equals("exe")){
-                            int exe_index = 1;boolean isfirst = false;
-                            ArrayList<LexToken.TokenD> v_tds = new ArrayList<>();
-                            do{
-                                td = getTokens();
-                                v_tds.add(td);
 
-                                if(td.getToken().equals(LexToken.Token.LP)&&td.getData().equals("(")&&isfirst) exe_index += 1;
-                                if(td.getToken().equals(LexToken.Token.LP)&&td.getData().equals("(")) isfirst = true;
-                                if(td.getToken().equals(LexToken.Token.LR)&&td.getData().equals(")")) exe_index-= 1;
 
-                            }while (exe_index > 0);
 
-                            AstInvokeTree in = new AstInvokeTree();
-                            in.setTds(v_tds);
-                            InvokeOutCode ic = (InvokeOutCode) in.eval(e);
-                            values.add(ic);
-                            continue;
+                    if(td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")&&index <= 0) {
+                        IntNBLExpression inble = new IntNBLExpression(tds);
+                        values.add(new GroupOutCode(inble.calculate(e,inble.nblLexValue())));
+                        tds.clear();
+                        break;
+                    }
 
-                        } else throw new VMException("Cannot usr key in function value.", Main.output);
-                    } else throw new VMException("Unknown value type.",Main.output);
+                    tds.add(td);
 
-                    values.add(new PushOPStackOutCode(f));
+
 
                     td = getTokens();
-                } while (!(td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")));
-
-                if(f==null)break;
-
+                } while (true);
             } while (!(td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")));
-        }catch (IndexOutOfBoundsException e1){
+
+
+        }catch (IndexOutOfBoundsException ignored){
         }catch (Exception e1){
             throw new VMException("Unknown parser error:"+e1.getLocalizedMessage(),Main.output);
         }
