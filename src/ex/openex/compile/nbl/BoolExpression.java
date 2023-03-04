@@ -21,7 +21,7 @@ public class BoolExpression {
                 else if(td.getData().equals("false")) ret.add(new PushOPStackOutCode(new ExBool(false)));
             }else if(td.getToken().equals(LexToken.Token.SEM)){
                 switch (td.getData()) {
-                    case "!" -> ret.add(new NolOutCode());
+                    case "!" -> ret.add(new NotOutCode());
                     case "&" -> ret.add(new AndOutCode());
                     case "|" -> ret.add(new OrOutCode());
                     case "==" -> ret.add(new EquOutCode());
