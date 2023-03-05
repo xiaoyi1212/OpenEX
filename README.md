@@ -79,3 +79,4 @@ exe.this.main(exe.system.memory()*2,3*(23+4));
 * v0.4.6 -重新移植catch,while,if语句
 * v0.4.7 -更改变量初始值语法，升级语法(可在算式中加入函数调用)
 * v0.4.8 -更新函数传参规则,废除参数标签以及vm库
+* v0.4.9 -更新system库的input函数以及math库
