@@ -4,6 +4,13 @@
 
 <hr>
 
+* 请使用JRE或JDk17以上环境运行
+* <code>java -jar OpenEX-v(版本号).jar -命令参数</code>
+* 本程序可以运行在任何具有JAVA运行环境的操作系统中,无需下载第三方JAR库
+* 目前已知可运行系统<code>Windows,Linux,MacOS,UNIX</code>
+
+<hr>
+
 ## system (系统库)
 |函数名|参数|返回值|用法|备注|
 |:---|:---|:---|:---|:---|
