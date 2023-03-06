@@ -42,6 +42,11 @@ exe.system.thread("线程名","启动方法名");
 //新版函数传参无需前置参数标签,直接如JS一样传入即可
 //函数参数可加算式
 exe.this.main(exe.system.memory()*2,3*(23+4));
+
+//新版支持else语句的使用,经过作者粗略测试，目前没发现BUG
+if(true|false){
+}else{
+}
 ```
 * 新版外部库API更换
 > 主类继承<code>ex.exvm.plugin.NativePlugin</code>抽象类并实现其方法\
@@ -93,3 +98,4 @@ exe.this.main(exe.system.memory()*2,3*(23+4));
 * v0.4.7 -更改变量初始值语法，升级语法(可在算式中加入函数调用)
 * v0.4.8 -更新函数传参规则,废除参数标签以及vm库
 * v0.4.9 -更新system库的input函数以及math库
+* v0.4.9(v0.3.0) -编译器更新:支持if else语句
