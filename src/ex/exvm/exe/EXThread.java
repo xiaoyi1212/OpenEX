@@ -13,7 +13,7 @@ public class EXThread {
     Status status;
     String function;
     public enum Status{
-        DEATH,INT,RUNNING,LOADING
+        DEATH,INT,RUNNING,LOADING,WAIT
     }
     public EXThread(Executor executor,String name){
         this.executor = executor;
@@ -34,6 +34,7 @@ public class EXThread {
     public Status getStatus() {
         return status;
     }
+
     public void  shutdownHook(){
         if(executor == null){
             boolean isfuc = true;
@@ -41,7 +42,7 @@ public class EXThread {
             for (FunctionGroup fg : ScriptManager.fgs) {
                 String path_d = function;
                 Executor executor1 = new Executor(null);
-                if(!path_d.contains("/"))executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径不正确, 缺少'/'分隔符.",fg);
+                if(!path_d.contains("/"))executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径不正确, 缺少'/'分隔符.",fg,executor1.executing);
                 if (path_d.toCharArray()[0] == 'L') {
                     path_d = path_d.replaceFirst("L", "");
                     String lib_d = path_d.split("/")[0];
@@ -55,9 +56,9 @@ public class EXThread {
                         isfuc = false;
                         break;
                     }
-                } else executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径类型不正确:" + path_d+",正确应该为 'L"+path_d+"'.",fg);
+                } else executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径类型不正确:" + path_d+",正确应该为 'L"+path_d+"'.",fg,executor1.executing);
             }
-            if(isfuc)executor.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"未找到指定路径的函数调用,尝试输入 'L库名/函数名' 进行调用.",new InvokeCode((byte) 0));
+            if(isfuc)executor.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"未找到指定路径的函数调用,尝试输入 'L库名/函数名' 进行调用.",new InvokeCode((byte) 0),executor.executing);
         }else {
             executor.start();
         }
@@ -74,7 +75,7 @@ public class EXThread {
                         String path_d = function;
                         Executor executor1 = new Executor(null);
                         if (!path_d.contains("/"))
-                            executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR, "函数调用路径不正确, 缺少'/'分隔符.", fg);
+                            executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR, "函数调用路径不正确, 缺少'/'分隔符.", fg,executor1.executing);
                         if (path_d.toCharArray()[0] == 'L') {
                             path_d = path_d.replaceFirst("L", "");
                             String lib_d = path_d.split("/")[0];
@@ -89,10 +90,10 @@ public class EXThread {
                                 break;
                             }
                         } else
-                            executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR, "函数调用路径类型不正确:" + path_d + ",正确应该为 'L" + path_d + "'.", fg);
+                            executor1.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR, "函数调用路径类型不正确:" + path_d + ",正确应该为 'L" + path_d + "'.", fg,executor1.executing);
                     }
                     if (isfuc)
-                        executor.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR, "未找到指定路径的函数调用,尝试输入 'L库名/函数名' 进行调用.", new InvokeCode((byte) 0));
+                        executor.getIntException().throwError(IntException.Error_Type.FUNCTION_PATH_ERROR, "未找到指定路径的函数调用,尝试输入 'L库名/函数名' 进行调用.", new InvokeCode((byte) 0),executor.executing);
                 } else {
                     executor.start();
                 }

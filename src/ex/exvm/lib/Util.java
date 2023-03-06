@@ -108,6 +108,8 @@ public class Util implements NativeLib{
             return new ExNull();
         }
 
+
+
         @Override
         public int getValueNum() {
             return 3;

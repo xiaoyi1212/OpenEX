@@ -9,10 +9,7 @@ import ex.openex.code.output.*;
 import ex.openex.compile.parser.CodeOptimization;
 import ex.exvm.obj.*;
 
-import java.util.ArrayList;
-import java.util.EmptyStackException;
-import java.util.Iterator;
-import java.util.Stack;
+import java.util.*;
 
 public class Executor {
     ScriptLoader main;
@@ -21,6 +18,10 @@ public class Executor {
     LibManager lib;
     EXThread thread;
     IntException ie;
+
+    public void setStatus(EXThread.Status status){
+        this.thread.status = status;
+    }
 
     public IntException getIntException() {
         return ie;
@@ -56,7 +57,7 @@ public class Executor {
         return op_stack.pop();
     }
 
-    private void alu(BaseCode bc){
+    private void alu(BaseCode bc,ScriptLoader exeing){
         if(bc instanceof AddCode){
             ExObject obj = pop();
             ExObject obj1 = pop();
@@ -73,7 +74,7 @@ public class Executor {
             ExObject obj = pop();
             ExObject obj1 = pop();
             if(obj instanceof ExString||obj1 instanceof ExString){
-                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行减数运算",bc);
+                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行减数运算",bc,exeing);
             }
             if(obj instanceof ExDouble||obj1 instanceof ExDouble){
                 push(new ExDouble(Double.parseDouble(obj1.getData()) - Double.parseDouble(obj.getData())));
@@ -84,7 +85,7 @@ public class Executor {
             ExObject obj = pop();
             ExObject obj1 = pop();
             if(obj instanceof ExString||obj1 instanceof ExString){
-                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行乘数运算",bc);
+                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行乘数运算",bc,exeing);
             }
             if(obj instanceof ExDouble||obj1 instanceof ExDouble){
                 push(new ExDouble(Double.parseDouble(obj1.getData()) * Double.parseDouble(obj.getData())));
@@ -95,7 +96,7 @@ public class Executor {
             ExObject obj = pop();
             ExObject obj1 = pop();
             if(obj instanceof ExString||obj1 instanceof ExString){
-                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能除数减数运算",bc);
+                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能除数减数运算",bc,exeing);
             }
             if(obj instanceof ExDouble||obj1 instanceof ExDouble){
                 push(new ExDouble(Double.parseDouble(obj1.getData()) / Double.parseDouble(obj.getData())));
@@ -113,7 +114,7 @@ public class Executor {
         }else if(bc instanceof BigCode){
             ExObject obj = pop();
             ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc);
+            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
             if(!obj.getType().equals(obj1.getType())){
                 push(new ExBool(false));
                 return;
@@ -123,7 +124,7 @@ public class Executor {
         } else if(bc instanceof LessCode){
             ExObject obj = pop();
             ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc);
+            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
 
             if(!obj.getType().equals(obj1.getType())){
                 push(new ExBool(false));
@@ -133,7 +134,7 @@ public class Executor {
         }else if(bc instanceof BigEquCode){
             ExObject obj = pop();
             ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc);
+            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
 
             if(!obj.getType().equals(obj1.getType())){
                 push(new ExBool(false));
@@ -143,7 +144,7 @@ public class Executor {
         }else if(bc instanceof LessEquCode){
             ExObject obj = pop();
             ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc);
+            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
             if(!obj.getType().equals(obj1.getType())){
                 push(new ExBool(false));
                 return;
@@ -152,8 +153,18 @@ public class Executor {
         }else if(bc instanceof NotCode){
             ExObject obj = pop();
 
-            if(!obj.getType().equals(ExObject.Type.BOOL))ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[UNKNOWN]类型不能进行‘非’逻辑运算",bc);
+            if(!obj.getType().equals(ExObject.Type.BOOL))ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"["+obj.getType()+"]类型不能进行‘非’逻辑运算",bc,exeing);
             push(new ExBool(!Boolean.parseBoolean(obj.getData())));
+        }else if(bc instanceof AndCode){
+            ExObject obj = pop();
+            ExObject obj1 = pop();
+            if(!(obj.getType().equals(ExObject.Type.BOOL)&&obj1.getType().equals(ExObject.Type.BOOL))) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[UNKNOWN]类型的变量不能进行比较运算",bc,exeing);
+            push(new ExBool(Boolean.parseBoolean(obj1.getData())&&Boolean.parseBoolean(obj.getData())));
+        } else if(bc instanceof OrCode){
+            ExObject obj = pop();
+            ExObject obj1 = pop();
+            if(!(obj.getType().equals(ExObject.Type.BOOL)&&obj1.getType().equals(ExObject.Type.BOOL))) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[UNKNOWN]类型的变量不能进行比较运算",bc,exeing);
+            push(new ExBool(Boolean.parseBoolean(obj1.getData())||Boolean.parseBoolean(obj.getData())));
         }
     }
 
@@ -161,7 +172,7 @@ public class Executor {
         executing = main;
         byte jemp_index = 0;
         try {
-            for (Iterator<BaseCode> it = executing.getBcs().iterator(); it.hasNext(); ) {
+            for (ListIterator<BaseCode> it = executing.getBcs().listIterator(); it.hasNext(); ) {
                 BaseCode bc = it.next();
                 if (jemp_index > 0) {
                     jemp_index -= 1;
@@ -229,7 +240,7 @@ public class Executor {
 
 
                     if (isout) continue;
-                    if (n == null) ie.throwError(IntException.Error_Type.NOT_FOUND_LIB,"Not found lib:" + name,bc);
+                    if (n == null) ie.throwError(IntException.Error_Type.NOT_FOUND_LIB,"Not found lib:" + name,bc,executing);
                     ScriptManager.nls.add(n);
                 } else if (bc instanceof InvokeCode) {
                     String path = executing.getTable().get(bc.getOpNum()).getExeData();
@@ -264,7 +275,7 @@ public class Executor {
                                             }
                                         }
                                         if (sl == null)
-                                            ie.throwError(IntException.Error_Type.NOT_FOUND_LIB,"找不到指定库:" + fg.getLib_name(),bc);
+                                            ie.throwError(IntException.Error_Type.NOT_FOUND_LIB,"找不到指定库:" + fg.getLib_name(),bc,executing);
                                         path_d = sl.getTable().get(fg.getPath()).getExeData();
 
                                     } else path_d = executing.getTable().get(fg.getPath()).getExeData();
@@ -278,10 +289,10 @@ public class Executor {
                                             i = 0;
                                             break;
                                         }
-                                    } else ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径类型不正确:" + path_d,bc);
+                                    } else ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径类型不正确:" + path_d,bc,executing);
                                 }
                             } catch (IndexOutOfBoundsException e) {
-                                ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"无法找到函数索引:" + bc.getOpNum() + ",请检查函数定义是否在调用语句前.",bc);
+                                ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"无法找到函数索引:" + bc.getOpNum() + ",请检查函数定义是否在调用语句前.",bc,executing);
                             }
 
                             executing = main;
@@ -291,7 +302,7 @@ public class Executor {
 
                         executing = main;
 
-                        if (nff == null) ie.throwError(IntException.Error_Type.NOT_FOUND_FUNCTION,"Not found function:(" + path + ")",bc);
+                        if (nff == null) ie.throwError(IntException.Error_Type.NOT_FOUND_FUNCTION,"Not found function:(" + path + ")",bc,executing);
                         nff.invoke(this);
                     }
                 } else if (bc instanceof LoadCode) {
@@ -302,7 +313,7 @@ public class Executor {
                     ExValue ev = new ExValue(executing.getTable().get(bc.getOpNum()).getExeData(), 1);
                     ev.setValue(pop());
                     ScriptManager.values.add(ev);
-                } else if (bc instanceof ALUCode) alu(bc);
+                } else if (bc instanceof ALUCode) alu(bc,executing);
                 else if (bc instanceof JempCode) {
                     ExObject obj = pop();
                     if (obj.getType().equals(ExObject.Type.BOOL)) {
@@ -321,7 +332,7 @@ public class Executor {
                         ExObject o = pop();
                         if (o.getType().equals(ExObject.Type.BOOL)) {
                             if (!Boolean.parseBoolean(o.getData())) break;
-                        } else ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"while语句布尔表达式解析有误",bc);
+                        } else ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"while语句布尔表达式解析有误",bc,executing);
 
                         subExecutor(blocks, executing, "<while_group>");
                     }
@@ -350,13 +361,16 @@ public class Executor {
                     ScriptManager.lists.add(ev);
                 }else if(bc instanceof ThrowCode){
                     String name = executing.getTable().get(bc.getOpNum()).getExeData();
-                    ie.throwError(IntException.Error_Type.valueOf(name),"<code_throw>",bc);
+                    ie.throwError(IntException.Error_Type.valueOf(name),"<code_throw>",bc,executing);
+                }else if(bc instanceof JmpCode){
+                    jemp_index = bc.getOpNum();
+                    continue;
                 }
             }
         }catch (EmptyStackException e){
-            ie.throwError(IntException.Error_Type.STACK_ERROR,"EXECUTOR操作栈异常,可能运算出现问题或一个函数并没有返回值",new PushCode((byte) 0));
+            ie.throwError(IntException.Error_Type.STACK_ERROR,"EXECUTOR操作栈异常,可能运算出现问题或一个函数并没有返回值",new PushCode((byte) 0),executing);
         }catch (NullPointerException e){
-            ie.throwError(IntException.Error_Type.NULL_PRINT_ERROR,"EXECUTOR内部发生空指针异常,可能加载了一个不存在的变量导致",new LoadCode((byte) 0));
+            ie.throwError(IntException.Error_Type.NULL_PRINT_ERROR,"EXECUTOR内部发生空指针异常,可能加载了一个不存在的变量导致",new LoadCode((byte) 0),executing);
         }
     }
 
@@ -365,7 +379,7 @@ public class Executor {
         try {
             byte jemp_index = 0;
 
-            for (Iterator<BaseCode> it = bcs.iterator(); it.hasNext(); ) {
+            for (ListIterator<BaseCode> it = bcs.listIterator(); it.hasNext(); ) {
                 BaseCode bc = it.next();
                 if(jemp_index > 0){
                     jemp_index -= 1;
@@ -443,7 +457,7 @@ public class Executor {
                                             sl = sm;
                                         }
                                     }
-                                    if (sl == null) ie.throwError(IntException.Error_Type.NOT_FOUND_LIB,"找不到指定库:" + fg.getLib_name(),bc);
+                                    if (sl == null) ie.throwError(IntException.Error_Type.NOT_FOUND_LIB,"找不到指定库:" + fg.getLib_name(),bc,exeing);
                                     path_d = sl.getTable().get(fg.getPath()).getExeData();
                                 } else path_d = exeing.getTable().get(fg.getPath()).getExeData();
 
@@ -465,13 +479,13 @@ public class Executor {
                                         exeing = buffer;
                                         break;
                                     }
-                                } else ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径类型不正确:" + path_d,bc);
+                                } else ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用路径类型不正确:" + path_d,bc,exeing);
                             }
                             if (i == 0) continue;
                         }
 
 
-                        if (nff == null) ie.throwError(IntException.Error_Type.NOT_FOUND_FUNCTION,"Not found function:(" + path + ")",bc);
+                        if (nff == null) ie.throwError(IntException.Error_Type.NOT_FOUND_FUNCTION,"Not found function:(" + path + ")",bc,exeing);
 
                         nff.invoke(this);
                     }
@@ -490,7 +504,7 @@ public class Executor {
                     ExValue ev = new ExValue(exeing.getTable().get(bc.getOpNum()).getExeData(), 1);
                     ev.setValue(pop());
                     ScriptManager.values.add(ev);
-                } else if (bc instanceof ALUCode) alu(bc);
+                } else if (bc instanceof ALUCode) alu(bc,exeing);
                 else if (bc instanceof JempCode) {
                     ExObject obj = pop();
                     if (obj.getType().equals(ExObject.Type.BOOL)) {
@@ -508,7 +522,7 @@ public class Executor {
                         ExObject o = pop();
                         if(o.getType().equals(ExObject.Type.BOOL)){
                             if(!Boolean.parseBoolean(o.getData()))break;
-                        }else ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"while语句布尔表达式解析有误",bc);
+                        }else ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"while语句布尔表达式解析有误",bc,exeing);
 
                         subExecutor(blocks,exeing,"<while_group>");
                     }
@@ -530,13 +544,15 @@ public class Executor {
                             }
                         }
                     }
-                    if(ev == null)ie.throwError(IntException.Error_Type.NOT_FOUND_VALUE_ERROR,"找不到指定变量:"+exeing.getTable().get(bc.getOpNum()).getExeData(),bc);
+                    if(ev == null)ie.throwError(IntException.Error_Type.NOT_FOUND_VALUE_ERROR,"找不到指定变量:"+exeing.getTable().get(bc.getOpNum()).getExeData(),bc,exeing);
                 }else if(bc instanceof RetCode){
                     return;
+                }else if(bc instanceof JmpCode){
+                    for (int i = 0; i < bc.getOpNum(); i++) bc = it.next();
                 }
             }
         }catch (EmptyStackException ese){
-            ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用参数不正确:"+funcname,new InvokeCode((byte) 0));
+            ie.throwError(IntException.Error_Type.FUNCTION_PATH_ERROR,"函数调用参数不正确:"+funcname,new InvokeCode((byte) 0),exeing);
         }
     }
 }

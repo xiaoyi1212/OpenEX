@@ -12,6 +12,7 @@ public class LibManager {
         l.libs = new ArrayList<>();
         l.libs.add(new Sys());
         l.libs.add(new Util());
+        l.libs.add(new Math());
 
         for(Plugin plugin: ex.exvm.plugin.LibManager.getPlugins())l.libs.add(plugin.getMain());
         return l;

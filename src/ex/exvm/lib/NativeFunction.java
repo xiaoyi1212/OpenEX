@@ -28,9 +28,9 @@ public abstract class NativeFunction {
 
             executor.push(exe(values, executor));
         }catch (EmptyStackException r){
-           executor.getIntException().throwError(IntException.Error_Type.FUNCTION_VALUE_ERROR,"函数参数个数不匹配,需要参数为:"+getValueNum()+"个.",new InvokeCode((byte) 0));
+           executor.getIntException().throwError(IntException.Error_Type.FUNCTION_VALUE_ERROR,"函数参数个数不匹配,需要参数为:"+getValueNum()+"个.",new InvokeCode((byte) 0),executor.executing);
         }catch (InterruptException ie){
-            executor.getIntException().throwError(IntException.Error_Type.NATIVE_FUNCTION_ERROR,ie.getMessage(),new InvokeCode((byte) 0));
+            executor.getIntException().throwError(IntException.Error_Type.NATIVE_FUNCTION_ERROR,ie.getMessage(),new InvokeCode((byte) 0),executor.executing);
         }
     }
 }

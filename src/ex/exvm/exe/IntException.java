@@ -1,8 +1,10 @@
 package ex.exvm.exe;
 
 import ex.exvm.EXThreadManager;
+import ex.exvm.ScriptLoader;
 import ex.openex.Main;
 import ex.openex.code.output.BaseCode;
+import ex.openex.code.output.IntCode;
 
 import java.util.ArrayList;
 
@@ -27,8 +29,9 @@ public class IntException {
         this.thread = executor.thread;
     }
 
-    public void throwError(Error_Type type, String message, BaseCode bc){
+    public void throwError(Error_Type type, String message, BaseCode bc, ScriptLoader loader){
         executor.thread.status = EXThread.Status.INT;
+
         StackTraceElement[] tace = Thread.currentThread().getStackTrace();
         StringBuilder info = new StringBuilder();
         for (int i = 1, taceLength = tace.length; i < taceLength; i++) {

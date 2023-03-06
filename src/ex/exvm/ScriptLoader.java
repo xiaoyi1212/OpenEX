@@ -2,6 +2,7 @@ package ex.exvm;
 
 import ex.openex.code.output.BaseCode;
 import ex.openex.code.output.FunctionGroup;
+import ex.openex.code.output.IntCode;
 import ex.openex.compile.parser.CodeOptimization;
 import ex.openex.exception.VMException;
 import ex.exvm.obj.ExList;
@@ -14,6 +15,7 @@ public class ScriptLoader {
     ArrayList<BaseCode> bcs;
     ArrayList<ExValue> pre_values;
     ArrayList<ExList> pre_lists;
+    ArrayList<IntCode> ints;
 
     ArrayList<FunctionGroup> fgs;
     String lib_name;
@@ -28,7 +30,12 @@ public class ScriptLoader {
         pre_values = new ArrayList<>();
         pre_lists = new ArrayList<>();
         fgs = co.getFunctions();
+        ints = co.getInts();
         lib_name = co.getFilename().split("\\.")[0];
+    }
+
+    public ArrayList<IntCode> getInts() {
+        return ints;
     }
 
     public String getLibName() {

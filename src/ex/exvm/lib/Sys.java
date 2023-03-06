@@ -99,6 +99,7 @@ public class Sys implements NativeLib{
         }
     }
     private static class Thread extends NativeFunction{
+
         @Override
         public ExObject exe(ArrayList<ExObject> values, Executor executor) throws InterruptException{
             String thread_name = values.get(0).getData();

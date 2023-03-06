@@ -42,10 +42,10 @@ public class ExValue extends ExObject{
                     if(ev.name.equals(name))return ev;
                 }
             }
-            executor.getIntException().throwError(IntException.Error_Type.NOT_FOUND_VALUE_ERROR,"找不到指定变量:"+name,new LoadCode((byte) 0));
+            executor.getIntException().throwError(IntException.Error_Type.NOT_FOUND_VALUE_ERROR,"找不到指定变量:"+name,new LoadCode((byte) 0),executor.executing);
             return null;
         }catch (EmptyStackException e){
-            executor.getIntException().throwError(IntException.Error_Type.LOAD_VALUE_ERROR,"变量值获取出现问题:"+name,new LoadCode((byte) 0));
+            executor.getIntException().throwError(IntException.Error_Type.LOAD_VALUE_ERROR,"变量值获取出现问题:"+name,new LoadCode((byte) 0),executor.executing);
             return null;
         }
     }
