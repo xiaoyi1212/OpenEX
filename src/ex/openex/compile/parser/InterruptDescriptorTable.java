@@ -11,4 +11,12 @@ public class InterruptDescriptorTable implements OutCode{
         this.id = id;
         this.oc = oc;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void run(){
+
+    }
 }

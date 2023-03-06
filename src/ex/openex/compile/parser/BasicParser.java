@@ -15,6 +15,7 @@ import java.util.LinkedList;
 
 public class BasicParser {
     LinkedList<LexToken.TokenD> tds;
+    LexToken.TokenD buffer = null;
     int index;
 
     public BasicParser(String file_name,LinkedList<LexToken.TokenD> tds, VMOutputStream player){
@@ -28,9 +29,15 @@ public class BasicParser {
 
     private LexToken.TokenD getToken(){
         if(index >= tds.size()) return null;
-        LexToken.TokenD t = tds.get(index);
-        index += 1;
-        return t;
+        if(buffer == null) {
+            LexToken.TokenD t = tds.get(index);
+            index += 1;
+            return t;
+        }else{
+            LexToken.TokenD tt = buffer;
+            buffer = null;
+            return tt;
+        }
     }
 
     private AstLeaf getLeaf() throws VMException {
@@ -108,6 +115,14 @@ public class BasicParser {
                         if (!(td.getToken().equals(LexToken.Token.LP) && td.getData().equals("(")))
                             throw new VMException("The If statement must be followed by '('", player);
                         getIf((AstIfStatement) leaf);
+                        td = getToken();
+                        if(td.getToken().equals(LexToken.Token.NAME)){
+                            if(td.getData().equals("else")){
+                                AstElseStatement aeis = new AstElseStatement();
+                                aeis.children().addAll(getBlockGroup(td));
+                                leaf.children().add(aeis);
+                            }else buffer = td;
+                        }else buffer = td;
                         return leaf;
                     }
                     case "while" -> {
@@ -201,86 +216,102 @@ public class BasicParser {
                 continue;
             }
             if(tdt.getToken().equals(LexToken.Token.NAME)) {
-                if (tdt.getData().equals("exe")) {
-                    AstInvokeTree leaf1 = new AstInvokeTree();
-                    ArrayList<LexToken.TokenD> td = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        td.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
+                switch (tdt.getData()) {
+                    case "exe" -> {
+                        AstInvokeTree leaf1 = new AstInvokeTree();
+                        ArrayList<LexToken.TokenD> td = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            td.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
 
-                    leaf1.setTds(td);
-                    ats.add(leaf1);
-                } else if (tdt.getData().equals("value")) {
-                    AstValueTree leaf = new AstValueTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        tds.add(tdt);
-                    } while (!(tdt.getToken().equals(LexToken.Token.SEM) && tdt.getData().equals("=")));
-                    tdt = getToken();
-                    ((AstValueTree) leaf).setTds(tds);
-
-                    leaf.children().add(getValueI(tdt));
-                    ats.add(leaf);
-                } else if (tdt.getData().equals("if")) {
-                    AstIfStatement leaf1 = new AstIfStatement();
-                    tdt = getToken();
-                    if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
-                        throw new VMException("The If statement must be followed by '('",player);
-                    getIf((AstIfStatement) leaf1);
-                    ats.add(leaf1);
-                } else if (tdt.getData().equals("while")) {
-                    AstLeaf leaf1 = new AstWhileTree();
-                    tdt = getToken();
-                    if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
-                        throw new VMException("The While statement must be followed by '('", player);
-                    getWhile((AstWhileTree) leaf1);
-                    ats.add(leaf1);
-                } else if(tdt.getData().equals("catch")){
-                    AstCatchTree leaf = new AstCatchTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        if (tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("{")) break;
-                        tds.add(tdt);
-                    } while (true);
-                    ((AstCatchTree) leaf).setTds(tds);
-                    for (AstTree at : getBlockGroup(tdt)) {
-                        leaf.children().add(at);
+                        leaf1.setTds(td);
+                        ats.add(leaf1);
                     }
-                    ats.add(leaf);
-                } else if (tdt.getData().equals("break")) {
-                    ats.add(new AstBreakTree());
-                }else if(tdt.getData().equals("list")) {
-                    AstListTree leaf = new AstListTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
+                    case "value" -> {
+                        AstValueTree leaf = new AstValueTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!(tdt.getToken().equals(LexToken.Token.SEM) && tdt.getData().equals("=")));
                         tdt = getToken();
-                        tds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
+                        ((AstValueTree) leaf).setTds(tds);
 
-                    ((AstListTree) leaf).setTds(tds);
-
-                    if (!tdt.getToken().equals(LexToken.Token.END))
-                        throw new VMException("Unknown lex in list statement end.", Main.output);
-
-                    ats.add(leaf);
-                }else if(tdt.getData().equals("throw")) {
-                    AstThrowTree leaf = new AstThrowTree();
-                    ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
-                    do {
+                        leaf.children().add(getValueI(tdt));
+                        ats.add(leaf);
+                    }
+                    case "if" -> {
+                        AstIfStatement leaf1 = new AstIfStatement();
                         tdt = getToken();
-                        tdds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
+                        if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
+                            throw new VMException("The If statement must be followed by '('", player);
+                        getIf((AstIfStatement) leaf1);
+                        tdt = getToken();
+                        if(tdt.getToken().equals(LexToken.Token.NAME)){
+                            if(tdt.getData().equals("else")){
+                                AstElseStatement aeis = new AstElseStatement();
+                                aeis.children().addAll(getBlockGroup(tdt));
+                                leaf1.children().add(aeis);
+                            }else buffer = tdt;
+                        }else buffer = tdt;
+                        ats.add(leaf1);
+                    }
+                    case "while" -> {
+                        AstLeaf leaf1 = new AstWhileTree();
+                        tdt = getToken();
+                        if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
+                            throw new VMException("The While statement must be followed by '('", player);
+                        getWhile((AstWhileTree) leaf1);
+                        ats.add(leaf1);
+                    }
+                    case "catch" -> {
+                        AstCatchTree leaf = new AstCatchTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            if (tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("{")) break;
+                            tds.add(tdt);
+                        } while (true);
+                        ((AstCatchTree) leaf).setTds(tds);
+                        for (AstTree at : getBlockGroup(tdt)) {
+                            leaf.children().add(at);
+                        }
+                        ats.add(leaf);
+                    }
+                    case "break" -> ats.add(new AstBreakTree());
+                    case "list" -> {
+                        AstListTree leaf = new AstListTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
 
-                    ((AstThrowTree) leaf).setTds(tdds);
+                        ((AstListTree) leaf).setTds(tds);
 
-                    if (!tdt.getToken().equals(LexToken.Token.END))
-                        throw new VMException("Unknown lex in throw statement end.", Main.output);
+                        if (!tdt.getToken().equals(LexToken.Token.END))
+                            throw new VMException("Unknown lex in list statement end.", Main.output);
 
-                    ats.add(leaf);
-                }else throw new VMException("error in parser :" + tdt,player);
+                        ats.add(leaf);
+                    }
+                    case "throw" -> {
+                        AstThrowTree leaf = new AstThrowTree();
+                        ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tdds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
+
+                        ((AstThrowTree) leaf).setTds(tdds);
+
+                        if (!tdt.getToken().equals(LexToken.Token.END))
+                            throw new VMException("Unknown lex in throw statement end.", Main.output);
+
+                        ats.add(leaf);
+                    }
+                    default -> throw new VMException("error in parser :" + tdt, player);
+                }
             }else if(tdt.getToken().equals(LexToken.Token.KEY)){
                 AstSetValue leaf = new AstSetValue();
                 ArrayList<LexToken.TokenD> tds = new ArrayList<>();
@@ -298,6 +329,24 @@ public class BasicParser {
         }while (lpbuf!=0);
 
         return ats;
+    }
+
+    private AstLeaf getElif(AstElseIfStatement leaf) throws VMException{
+        LexToken.TokenD td;
+        int lpbuf = 1;
+        ArrayList<LexToken.TokenD> tdd = new ArrayList<>();
+        do {
+            td = getToken();
+            if (td.getToken().equals(LexToken.Token.LP) && td.getData().equals("(")) lpbuf += 1;
+            if (td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")) lpbuf -= 1;
+            tdd.add(td);
+        }while (lpbuf != 0);
+        leaf.setBool(tdd);
+
+        td = getToken();
+        if(!(td.getToken().equals(LexToken.Token.LP)&&td.getData().equals("{")))throw new VMException("The While statement must be followes by '{'",player);
+        leaf.children().addAll(getIfGroup(td));
+        return leaf;
     }
 
     private AstLeaf getIf(AstIfStatement leaf) throws VMException{
@@ -335,94 +384,113 @@ public class BasicParser {
                 continue;
             }
             if(tdt.getToken().equals(LexToken.Token.NAME)) {
-                if (tdt.getData().equals("exe")) {
-                    AstInvokeTree leaf1 = new AstInvokeTree();
-                    ArrayList<LexToken.TokenD> td = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        td.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
+                switch (tdt.getData()) {
+                    case "exe" -> {
+                        AstInvokeTree leaf1 = new AstInvokeTree();
+                        ArrayList<LexToken.TokenD> td = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            td.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
 
-                    leaf1.setTds(td);
-                    ats.add(leaf1);
-                } else if (tdt.getData().equals("value")) {
-                    AstValueTree leaf = new AstValueTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        tds.add(tdt);
-                    } while (!(tdt.getToken().equals(LexToken.Token.SEM) && tdt.getData().equals("=")));
-                    tdt = getToken();
-                    ((AstValueTree) leaf).setTds(tds);
-
-                    leaf.children().add(getValueI(tdt));
-                    ats.add(leaf);
-                }  else if (tdt.getData().equals("if")) {
-                    AstIfStatement leaf1 = new AstIfStatement();
-                    tdt = getToken();
-                    if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
-                        throw new VMException("The If statement must be followed by '('",player);
-                    getIf((AstIfStatement) leaf1);
-                    ats.add(leaf1);
-                } else if (tdt.getData().equals("while")) {
-                    AstLeaf leaf1 = new AstWhileTree();
-                    tdt = getToken();
-                    if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
-                        throw new VMException("The While statement must be followed by '('", player);
-                    getWhile((AstWhileTree) leaf1);
-                    ats.add(leaf1);
-                }else if(tdt.getData().equals("catch")){
-                    AstCatchTree leaf = new AstCatchTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        if (tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("{")) break;
-                        tds.add(tdt);
-                    } while (true);
-                    ((AstCatchTree) leaf).setTds(tds);
-                    for (AstTree at : getBlockGroup(tdt)) {
-                        leaf.children().add(at);
+                        leaf1.setTds(td);
+                        ats.add(leaf1);
                     }
-                    ats.add(leaf);
-                } else if (tdt.getData().equals("break")) {
-                    ats.add(new AstBreakTree());
-                }else if(tdt.getData().equals("return")){
-                    AstReturnTree leaf = new AstReturnTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
+                    case "value" -> {
+                        AstValueTree leaf = new AstValueTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!(tdt.getToken().equals(LexToken.Token.SEM) && tdt.getData().equals("=")));
                         tdt = getToken();
-                        tds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
-                    ((AstReturnTree) leaf).setTds(tds);
-                    ats.add(leaf);
+                        ((AstValueTree) leaf).setTds(tds);
 
-                }else if(tdt.getData().equals("list")){
-                    AstListTree leaf = new AstListTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
+                        leaf.children().add(getValueI(tdt));
+                        ats.add(leaf);
+                    }
+                    case "if" -> {
+                        AstIfStatement leaf1 = new AstIfStatement();
                         tdt = getToken();
-                        tds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
-
-                    ((AstListTree) leaf).setTds(tds);
-
-                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in list statement end.",Main.output);
-
-                    ats.add(leaf);
-                }else if(tdt.getData().equals("throw")){
-                    AstThrowTree leaf = new AstThrowTree();
-                    ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
-                    do {
+                        if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
+                            throw new VMException("The If statement must be followed by '('", player);
+                        getIf((AstIfStatement) leaf1);
                         tdt = getToken();
-                        tdds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
+                        if(tdt.getToken().equals(LexToken.Token.NAME)){
+                            if(tdt.getData().equals("else")){
+                                AstElseStatement aeis = new AstElseStatement();
+                                aeis.children().addAll(getBlockGroup(tdt));
+                                leaf1.children().add(aeis);
+                            }else buffer = tdt;
+                        }else buffer = tdt;
+                        ats.add(leaf1);
+                    }
+                    case "while" -> {
+                        AstLeaf leaf1 = new AstWhileTree();
+                        tdt = getToken();
+                        if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
+                            throw new VMException("The While statement must be followed by '('", player);
+                        getWhile((AstWhileTree) leaf1);
+                        ats.add(leaf1);
+                    }
+                    case "catch" -> {
+                        AstCatchTree leaf = new AstCatchTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            if (tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("{")) break;
+                            tds.add(tdt);
+                        } while (true);
+                        ((AstCatchTree) leaf).setTds(tds);
+                        for (AstTree at : getBlockGroup(tdt)) {
+                            leaf.children().add(at);
+                        }
+                        ats.add(leaf);
+                    }
+                    case "break" -> ats.add(new AstBreakTree());
+                    case "return" -> {
+                        AstReturnTree leaf = new AstReturnTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
+                        ((AstReturnTree) leaf).setTds(tds);
+                        ats.add(leaf);
 
-                    ((AstThrowTree) leaf).setTds(tdds);
+                    }
+                    case "list" -> {
+                        AstListTree leaf = new AstListTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
 
-                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in throw statement end.", Main.output);
+                        ((AstListTree) leaf).setTds(tds);
 
-                    ats.add(leaf);
-                } else throw new VMException("error in parser :" + tdt,player);
+                        if (!tdt.getToken().equals(LexToken.Token.END))
+                            throw new VMException("Unknown lex in list statement end.", Main.output);
+
+                        ats.add(leaf);
+                    }
+                    case "throw" -> {
+                        AstThrowTree leaf = new AstThrowTree();
+                        ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tdds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
+
+                        ((AstThrowTree) leaf).setTds(tdds);
+
+                        if (!tdt.getToken().equals(LexToken.Token.END))
+                            throw new VMException("Unknown lex in throw statement end.", Main.output);
+
+                        ats.add(leaf);
+                    }
+                    default -> throw new VMException("error in parser :" + tdt, player);
+                }
             }else if (tdt.getToken().equals(LexToken.Token.KEY)) {
                 AstSetValue leaf = new AstSetValue();
                 ArrayList<LexToken.TokenD> tds = new ArrayList<>();
@@ -467,90 +535,110 @@ public class BasicParser {
                 continue;
             }
             if(tdt.getToken().equals(LexToken.Token.NAME)){
-                if(tdt.getData().equals("exe")){
-                    AstInvokeTree leaf1  = new AstInvokeTree();
-                    ArrayList<LexToken.TokenD> td = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        td.add(tdt);
-                    }while (!tdt.getToken().equals(LexToken.Token.END));
-                    leaf1.setTds(td);
-                    ats.add(leaf1);
-                }else if(tdt.getData().equals("value")) {
-                    AstValueTree leaf = new AstValueTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        tds.add(tdt);
-                    } while (!(tdt.getToken().equals(LexToken.Token.SEM) && tdt.getData().equals("=")));
-                    tdt = getToken();
-                    ((AstValueTree) leaf).setTds(tds);
-
-                    leaf.children().add(getValueI(tdt));
-                    ats.add(leaf);
-                }else if(tdt.getData().equals("if")) {
-                    AstIfStatement leaf1  = new AstIfStatement();
-                    tdt = getToken();
-                    if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
-                        throw new VMException("The If statement must be followed by '('",player);
-                    getIf((AstIfStatement) leaf1);
-                    ats.add(leaf1);
-                }else if(tdt.getData().equals("while")) {
-                    AstWhileTree leaf1 = new AstWhileTree();
-                    tdt = getToken();
-                    if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
-                        throw new VMException("The While statement must be followed by '('", player);
-                    getWhile((AstWhileTree) leaf1);
-                    ats.add(leaf1);
-                }else if(tdt.getData().equals("catch")) {
-                    AstCatchTree leaf = new AstCatchTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
-                        tdt = getToken();
-                        if (tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("{")) break;
-                        tds.add(tdt);
-                    } while (true);
-                    ((AstCatchTree) leaf).setTds(tds);
-                    for (AstTree at : getBlockGroup(tdt)) {
-                        leaf.children().add(at);
+                switch (tdt.getData()) {
+                    case "exe" -> {
+                        AstInvokeTree leaf1 = new AstInvokeTree();
+                        ArrayList<LexToken.TokenD> td = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            td.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
+                        leaf1.setTds(td);
+                        ats.add(leaf1);
                     }
-                    ats.add(leaf);
-                }else if(tdt.getData().equals("return")) {
-                    AstReturnTree leaf = new AstReturnTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
+                    case "value" -> {
+                        AstValueTree leaf = new AstValueTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!(tdt.getToken().equals(LexToken.Token.SEM) && tdt.getData().equals("=")));
                         tdt = getToken();
-                        tds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
-                    ((AstReturnTree) leaf).setTds(tds);
-                    ats.add(leaf);
-                }else if(tdt.getData().equals("list")){
-                    AstListTree leaf = new AstListTree();
-                    ArrayList<LexToken.TokenD> tds = new ArrayList<>();
-                    do {
+                        ((AstValueTree) leaf).setTds(tds);
+
+                        leaf.children().add(getValueI(tdt));
+                        ats.add(leaf);
+                    }
+                    case "if" -> {
+                        AstIfStatement leaf1 = new AstIfStatement();
                         tdt = getToken();
-                        tds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
-
-                    ((AstListTree) leaf).setTds(tds);
-
-                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in list statement end.",Main.output);
-
-                    ats.add(leaf);
-                }else if(tdt.getData().equals("throw")){
-                    AstThrowTree leaf = new AstThrowTree();
-                    ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
-                    do {
+                        if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
+                            throw new VMException("The If statement must be followed by '('", player);
+                        getIf((AstIfStatement) leaf1);
                         tdt = getToken();
-                        tdds.add(tdt);
-                    } while (!tdt.getToken().equals(LexToken.Token.END));
+                        if(tdt.getToken().equals(LexToken.Token.NAME)){
+                            if(tdt.getData().equals("else")){
+                                AstElseStatement aeis = new AstElseStatement();
+                                aeis.children().addAll(getBlockGroup(tdt));
+                                leaf1.children().add(aeis);
+                            }else buffer = tdt;
+                        }else buffer = tdt;
+                        ats.add(leaf1);
+                    }
+                    case "while" -> {
+                        AstWhileTree leaf1 = new AstWhileTree();
+                        tdt = getToken();
+                        if (!(tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("(")))
+                            throw new VMException("The While statement must be followed by '('", player);
+                        getWhile((AstWhileTree) leaf1);
+                        ats.add(leaf1);
+                    }
+                    case "catch" -> {
+                        AstCatchTree leaf = new AstCatchTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            if (tdt.getToken().equals(LexToken.Token.LP) && tdt.getData().equals("{")) break;
+                            tds.add(tdt);
+                        } while (true);
+                        ((AstCatchTree) leaf).setTds(tds);
+                        for (AstTree at : getBlockGroup(tdt)) {
+                            leaf.children().add(at);
+                        }
+                        ats.add(leaf);
+                    }
+                    case "return" -> {
+                        AstReturnTree leaf = new AstReturnTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
+                        ((AstReturnTree) leaf).setTds(tds);
+                        ats.add(leaf);
+                    }
+                    case "list" -> {
+                        AstListTree leaf = new AstListTree();
+                        ArrayList<LexToken.TokenD> tds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
 
-                    ((AstThrowTree) leaf).setTds(tdds);
+                        ((AstListTree) leaf).setTds(tds);
 
-                    if(!tdt.getToken().equals(LexToken.Token.END))throw new VMException("Unknown lex in throw statement end.", Main.output);
+                        if (!tdt.getToken().equals(LexToken.Token.END))
+                            throw new VMException("Unknown lex in list statement end.", Main.output);
 
-                    ats.add(leaf);
-                }else throw new VMException("error in parser :"+tdt,player);
+                        ats.add(leaf);
+                    }
+                    case "throw" -> {
+                        AstThrowTree leaf = new AstThrowTree();
+                        ArrayList<LexToken.TokenD> tdds = new ArrayList<>();
+                        do {
+                            tdt = getToken();
+                            tdds.add(tdt);
+                        } while (!tdt.getToken().equals(LexToken.Token.END));
+
+                        ((AstThrowTree) leaf).setTds(tdds);
+
+                        if (!tdt.getToken().equals(LexToken.Token.END))
+                            throw new VMException("Unknown lex in throw statement end.", Main.output);
+
+                        ats.add(leaf);
+                    }
+                    default -> throw new VMException("error in parser :" + tdt, player);
+                }
             }else if(tdt.getToken().equals(LexToken.Token.KEY)){
                 AstSetValue leaf = new AstSetValue();
                 ArrayList<LexToken.TokenD> tds = new ArrayList<>();

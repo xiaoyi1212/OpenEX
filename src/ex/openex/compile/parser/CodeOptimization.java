@@ -12,7 +12,12 @@ public class CodeOptimization {
     CompileFile cf;
     ArrayList<ConstTableTask> ctt;
     ArrayList<FunctionGroup> fgs;
+    ArrayList<IntCode> ints;
     byte const_index_ax;
+
+    public ArrayList<IntCode> getInts() {
+        return ints;
+    }
 
     public String getFilename() {
         return cf.filename;
@@ -77,6 +82,7 @@ public class CodeOptimization {
         ctt = new ArrayList<>();
         fgs = new ArrayList<>();
         const_index_ax = 0;
+        this.ints = new ArrayList<>();
     }
 
     public ArrayList<ConstTableTask> getCtt() {
@@ -109,6 +115,8 @@ public class CodeOptimization {
             else if(oc instanceof LessEquOutCode) bcs.add(new LessEquCode());
             else if(oc instanceof BigEquOutCode) bcs.add(new BigEquCode());
             else if(oc instanceof NotOutCode)bcs.add(new NotCode());
+            else if(oc instanceof AndOutCode) bcs.add(new AndCode());
+            else if(oc instanceof OrOutCode) bcs.add(new OrCode());
         }
         return bcs;
     }
@@ -168,6 +176,7 @@ public class CodeOptimization {
                 out.addAll(parser(((JneOutCode) oc).getBool().getBcs(),new ArrayList<>()));
                 out.add(new JempCode((byte) parser(((JneOutCode) oc).getBool().getBcs(), new ArrayList<>()).size()));
                 out.addAll(getFunctionCode(((JneOutCode) oc).getBlock().getBcs()));
+                if(((JneOutCode) oc).getElseb()!=null)out.addAll(getFunctionCode(((JneOutCode) oc).getElseb().getBcs()));
             }else if(oc instanceof LopOutCode){
                 ArrayList<BaseCode> bool = parser(((LopOutCode) oc).getBool().getBcs(), new ArrayList<>());
                 ArrayList<BaseCode> block = getFunctionCode(((LopOutCode) oc).getBlock().getBcs());
@@ -188,6 +197,12 @@ public class CodeOptimization {
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((ThrowOutCode) oc).getName()));
                 out.add(new ThrowCode(const_index_ax));
                 const_index_ax += 1;
+            }else if(oc instanceof InterruptDescriptorTable){
+                ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((InterruptDescriptorTable) oc).id));
+                ints.add(new IntCode(const_index_ax,parser(((InterruptDescriptorTable) oc).oc,new ArrayList<>())));
+                const_index_ax += 1;
+            }else if(oc instanceof JmpOutCode){
+                out.add(new JmpCode((byte) (getFunctionCode(((GroupOutCode)((JmpOutCode) oc).getOcs()).getBcs()).size())));
             }
         }
 
@@ -222,6 +237,7 @@ public class CodeOptimization {
                 out.addAll(parser(((JneOutCode) oc).getBool().getBcs(),new ArrayList<>()));
                 out.add(new JempCode((byte) parser(((JneOutCode) oc).getBool().getBcs(), new ArrayList<>()).size()));
                 out.addAll(getFunctionCode(((JneOutCode) oc).getBlock().getBcs()));
+                if(((JneOutCode) oc).getElseb()!=null)out.addAll(getFunctionCode(((JneOutCode) oc).getElseb().getBcs()));
             }else if(oc instanceof PopLocalValueTableOutCode){
                 out.addAll(parser(((PopLocalValueTableOutCode) oc).getBcs(),new ArrayList<>()));
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((PopLocalValueTableOutCode) oc).getName()));
@@ -246,6 +262,9 @@ public class CodeOptimization {
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((ThrowOutCode) oc).getName()));
                 out.add(new ThrowCode(const_index_ax));
                 const_index_ax += 1;
+            }else if(oc instanceof JmpOutCode){
+
+                out.add(new JmpCode((byte) (getFunctionCode(((GroupOutCode)((JmpOutCode) oc).getOcs()).getBcs()).size())));
             }
         }
         return out;
