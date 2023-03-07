@@ -11,7 +11,9 @@ public class AstElseStatement extends AstLeaf{
     @Override
     public OutCode eval(CompileFile e) throws VMException {
         ArrayList<OutCode> ocs = new ArrayList<>();
-        for(AstTree tree:children())ocs.add(tree.eval(e));
+        for(AstTree tree:children()){
+            ocs.add(tree.eval(e));
+        }
         return new GroupOutCode(ocs);
     }
 }

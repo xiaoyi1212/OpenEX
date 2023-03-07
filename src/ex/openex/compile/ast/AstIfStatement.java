@@ -42,7 +42,8 @@ public class AstIfStatement extends AstLeaf{
     public OutCode eval(CompileFile e) throws VMException {
         LexToken.TokenD td = bool.get(0);
 
-        bool.remove(bool.size()-1);
+        LexToken.TokenD end = bool.get(bool.size()-1);if(end.getToken().equals(LexToken.Token.LR))
+            bool.remove(bool.size()-1);
         boolean isbool = false;
 
         for(LexToken.TokenD t:bool)
@@ -51,15 +52,17 @@ public class AstIfStatement extends AstLeaf{
                 break;
             }
 
-        ArrayList<OutCode> bc = new ArrayList<>(),bol = new ArrayList<>();OutCode elseb=null;
+        ArrayList<OutCode> bc = new ArrayList<>(),bol = new ArrayList<>();GroupOutCode elseb=null;
         for(AstTree TREE:children()){
             if(TREE instanceof AstElseStatement){
                 bc.add(new JmpOutCode(TREE.eval(e)));
-                elseb = TREE.eval(e);
+                elseb = (GroupOutCode) TREE.eval(e);
                 break;
             }
             bc.add(TREE.eval(e));
         }
+
+
 
         if(!isbool){
             if(td.getData().equals("true")) {
@@ -69,7 +72,7 @@ public class AstIfStatement extends AstLeaf{
                 return elseb;
             }else throw new VMException("Cannot use keywords in Boolean expressions in IF statements.", Main.output);
         }else if(isbool){
-            return new JneOutCode(new GroupOutCode(BoolExpression.calculate(e,BoolExpression.parseBoolExpr(bool))),new GroupOutCode(bc), (GroupOutCode) elseb);
+            return new JneOutCode(new GroupOutCode(BoolExpression.calculate(e,BoolExpression.parseBoolExpr(bool))),new GroupOutCode(bc), elseb);
         }else throw new VMException("Cannot in if statement boolean use key.",Main.output);
     }
 }

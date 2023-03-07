@@ -7,6 +7,7 @@ import ex.openex.code.OutCode;
 import ex.openex.code.PushOPStackOutCode;
 import ex.openex.compile.LexToken;
 import ex.openex.compile.nbl.IntNBLExpression;
+import ex.openex.compile.nbl.NBLExpression;
 import ex.openex.compile.parser.CompileFile;
 import ex.openex.exception.VMException;
 import ex.exvm.obj.*;
@@ -81,6 +82,15 @@ public class AstInvokeTree extends AstLeaf{
 
 
                     if(td.getToken().equals(LexToken.Token.LR) && td.getData().equals(")")&&index <= 0) {
+                        boolean isnum = true;
+                        for(LexToken.TokenD tddebug:tds) {
+                            if (tddebug.getToken().equals(LexToken.Token.NAME) || tddebug.getToken().equals(LexToken.Token.KEY)) {
+                                isnum = false;
+                                break;
+                            }
+                        }
+
+
                         IntNBLExpression inble = new IntNBLExpression(tds);
                         values.add(new GroupOutCode(inble.calculate(e,inble.nblLexValue())));
                         tds.clear();
@@ -98,6 +108,7 @@ public class AstInvokeTree extends AstLeaf{
 
         }catch (IndexOutOfBoundsException ignored){
         }catch (Exception e1){
+            e1.printStackTrace();
             throw new VMException("Unknown parser error:"+e1.getLocalizedMessage(),Main.output);
         }
 
