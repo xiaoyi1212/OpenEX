@@ -1,12 +1,36 @@
 include "system";
-include "util";
-include "native";
 
-value local a:"A" = 1 + exe.system.memory();
+value local memory:"SystemMemoryUse" = exe.system.memory();
+value local b:"AX" = 1*(3+(5-2));
 
-exe.system.print(a);
-exe.native.output("???");
-exe.system.print(exe.system.memory());
+if(memory < 2){
+    exe.system.print("Hello! World!");
+}else{
+   if(memory == 2){
+      exe.system.print(2+"MB");
+   }else{
+      if(memory == 5.44){
+         exe.system.print(memory+"MB");
+         exe.system.print(b);
+      }else{
+         exe.system.print(memory);
+      }
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
