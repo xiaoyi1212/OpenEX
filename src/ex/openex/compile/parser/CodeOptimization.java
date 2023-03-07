@@ -57,7 +57,7 @@ public class CodeOptimization {
 
         @Override
         public String toString() {
-            return "type:"+type+"|data:"+new String(data);
+            return "type:"+type+"|data:"+new String(data)+"|index:"+index;
         }
 
         public byte getType() {
@@ -137,6 +137,7 @@ public class CodeOptimization {
                 byte buf = const_index_ax;
                 const_index_ax+=1;
                 parser(((InvokeOutCode) oc).getValue().getBcs(), out);
+
                 out.add(new InvokeCode(buf));
 
             }else if(oc instanceof LoadValueOutCode) {
@@ -174,9 +175,14 @@ public class CodeOptimization {
                 fgs.add(fg);
             }else if(oc instanceof JneOutCode){
                 out.addAll(parser(((JneOutCode) oc).getBool().getBcs(),new ArrayList<>()));
-                out.add(new JempCode((byte) parser(((JneOutCode) oc).getBool().getBcs(), new ArrayList<>()).size()));
+                byte size = (byte) (parser(((JneOutCode) oc).getBlock().getBcs(), new ArrayList<>()).size());
+                if(((JneOutCode) oc).getElseb()!=null) size += 1;
+
+                out.add(new JempCode(size));
+
                 out.addAll(getFunctionCode(((JneOutCode) oc).getBlock().getBcs()));
                 if(((JneOutCode) oc).getElseb()!=null)out.addAll(getFunctionCode(((JneOutCode) oc).getElseb().getBcs()));
+
             }else if(oc instanceof LopOutCode){
                 ArrayList<BaseCode> bool = parser(((LopOutCode) oc).getBool().getBcs(), new ArrayList<>());
                 ArrayList<BaseCode> block = getFunctionCode(((LopOutCode) oc).getBlock().getBcs());
@@ -205,13 +211,13 @@ public class CodeOptimization {
                 out.add(new JmpCode((byte) (getFunctionCode(((GroupOutCode)((JmpOutCode) oc).getOcs()).getBcs()).size())));
             }
         }
-
         return out;
     }
 
 
     private ArrayList<BaseCode> getFunctionCode(ArrayList<OutCode> bcs){
         ArrayList<BaseCode> out = new ArrayList<>();
+
         for(OutCode oc:bcs){
             if(oc instanceof LoadLibOutCode){
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((LoadLibOutCode) oc).getLib()));
@@ -223,8 +229,8 @@ public class CodeOptimization {
                 byte buf = const_index_ax;
                 const_index_ax+=1;
                 parser(((InvokeOutCode) oc).getValue().getBcs(), out);
-                out.add(new InvokeCode(buf));
 
+                out.add(new InvokeCode(buf));
             }else if(oc instanceof LoadValueOutCode){
                 out.addAll(parser(((LoadValueOutCode) oc).getBcs(),new ArrayList<>()));
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((LoadValueOutCode) oc).getName()));
@@ -235,9 +241,14 @@ public class CodeOptimization {
                 const_index_ax += 1;
             }else if(oc instanceof JneOutCode){
                 out.addAll(parser(((JneOutCode) oc).getBool().getBcs(),new ArrayList<>()));
-                out.add(new JempCode((byte) parser(((JneOutCode) oc).getBool().getBcs(), new ArrayList<>()).size()));
+                byte size = (byte) (parser(((JneOutCode) oc).getBlock().getBcs(), new ArrayList<>()).size());
+                if(((JneOutCode) oc).getElseb()!=null) size += 1;
+
+                out.add(new JempCode(size));
+
                 out.addAll(getFunctionCode(((JneOutCode) oc).getBlock().getBcs()));
                 if(((JneOutCode) oc).getElseb()!=null)out.addAll(getFunctionCode(((JneOutCode) oc).getElseb().getBcs()));
+
             }else if(oc instanceof PopLocalValueTableOutCode){
                 out.addAll(parser(((PopLocalValueTableOutCode) oc).getBcs(),new ArrayList<>()));
                 ctt.add(new ConstTableTask(const_index_ax,ConstTableTask.STRING,((PopLocalValueTableOutCode) oc).getName()));
@@ -263,7 +274,6 @@ public class CodeOptimization {
                 out.add(new ThrowCode(const_index_ax));
                 const_index_ax += 1;
             }else if(oc instanceof JmpOutCode){
-
                 out.add(new JmpCode((byte) (getFunctionCode(((GroupOutCode)((JmpOutCode) oc).getOcs()).getBcs()).size())));
             }
         }
