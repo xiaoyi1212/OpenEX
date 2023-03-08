@@ -5,6 +5,7 @@ import ex.exvm.lib.NativeLib;
 import ex.exvm.plugin.LibManager;
 import ex.openex.Main;
 import ex.openex.binary.FileManager;
+import ex.openex.binary.cvm.BinaryManage;
 import ex.openex.code.output.BaseCode;
 import ex.openex.code.output.FunctionGroup;
 import ex.openex.compile.LexToken;
@@ -15,10 +16,7 @@ import ex.openex.exception.VMException;
 import ex.exvm.obj.ExList;
 import ex.exvm.obj.ExValue;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -57,16 +55,37 @@ public class ScriptManager {
                 lib_names.add(s.split(":")[1]);
             }else if(s.equals("-compile")){
                 a = 1;
+            }else if(s.equals("-CVMcompile")){
+                a = 2;
             }
         }
 
         if(a == 1){
             compileBinary(names);
             return 0;
+        }else if(a == 2){
+            compileC(names);
+            return 0;
         }
         if(bin_names.size() > 0) FileManager.manage(bin_names);
         if(names.size() > 0)compileFile(names);
         return 0;
+    }
+
+    private static void compileC(ArrayList<String> names) throws VMException{
+        for(String name:names){
+            LinkedList<LexToken.TokenD> tds = new LexToken(name,Main.output,1).launch();
+            LinkedList<LexToken.TokenD> buf = new LinkedList<>();
+
+            for (LexToken.TokenD td : tds) {
+                if (td.getToken().equals(LexToken.Token.TEXT)) continue;
+                buf.add(td);
+            }
+            CompileFile cm = new BasicParser(name,buf, Main.output).rust();
+            CodeOptimization co = new CodeOptimization(cm);
+            BinaryManage.addLoader(new ScriptLoader(co));
+        }
+        BinaryManage.launch();
     }
 
     private static void compileBinary(ArrayList<String> names) throws VMException {
@@ -86,22 +105,8 @@ public class ScriptManager {
 
     private static void write(String filename,CodeOptimization co) throws VMException {
         try{
-            DataOutputStream out = new DataOutputStream(new FileOutputStream(filename.split("\\.")[0]+".ebc"));
-            out.write(0xcc);
-            ArrayList<BaseCode> bc = co.getOutput();
-            byte size_const = 0;
-            for(CodeOptimization.ConstTableTask ct:co.getCtt()) size_const += ct.getData().length;
-            out.write(size_const);
-
-            out.write((byte)0xff);
-            out.write(0);
-
-            for(CodeOptimization.ConstTableTask ct:co.getCtt())out.write(ct.getData());
-            out.write((byte)0xff);
-            byte size_bytecode =0;
-            for(BaseCode bcc:bc)size_bytecode += bcc.eval().length;
-            out.write(size_bytecode);
-            for(BaseCode bcc:bc)out.write(bcc.eval());
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename.split("\\.")[0]+".ebc"));
+            out.writeObject(new ScriptLoader(co));
             out.close();
         }catch (IOException io){
             io.printStackTrace();

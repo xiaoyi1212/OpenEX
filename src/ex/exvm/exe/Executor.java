@@ -58,126 +58,141 @@ public class Executor {
     }
 
     private void alu(BaseCode bc,ScriptLoader exeing){
-        if(bc instanceof AddCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj instanceof ExString||obj1 instanceof ExString){
-                push(new ExString(obj1.getData() + obj.getData()));
-                return;
-            }
-            if(obj instanceof ExDouble||obj1 instanceof ExDouble){
-                push(new ExDouble(Double.parseDouble(obj1.getData()) + Double.parseDouble(obj.getData())));
-                return;
-            }
-            push(new ExInt(Integer.parseInt(obj1.getData())+Integer.parseInt(obj.getData())));
-        }else if(bc instanceof SubCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj instanceof ExString||obj1 instanceof ExString){
-                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行减数运算",bc,exeing);
-            }
-            if(obj instanceof ExDouble||obj1 instanceof ExDouble){
-                push(new ExDouble(Double.parseDouble(obj1.getData()) - Double.parseDouble(obj.getData())));
-                return;
-            }
-            push(new ExInt(Integer.parseInt(obj1.getData())-Integer.parseInt(obj.getData())));
-        }else if(bc instanceof MulCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj instanceof ExString||obj1 instanceof ExString){
-                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行乘数运算",bc,exeing);
-            }
-            if(obj instanceof ExDouble||obj1 instanceof ExDouble){
-                push(new ExDouble(Double.parseDouble(obj1.getData()) * Double.parseDouble(obj.getData())));
-                return;
-            }
-            push(new ExInt(Integer.parseInt(obj1.getData())*Integer.parseInt(obj.getData())));
-        }else if(bc instanceof DivCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj instanceof ExString||obj1 instanceof ExString){
-                ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能除数减数运算",bc,exeing);
-            }
-            if(obj instanceof ExDouble||obj1 instanceof ExDouble){
-                push(new ExDouble(Double.parseDouble(obj1.getData()) / Double.parseDouble(obj.getData())));
-                return;
-            }
-            push(new ExInt(Integer.parseInt(obj1.getData())/Integer.parseInt(obj.getData())));
-        }else if(bc instanceof EquCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(!obj.getType().equals(obj1.getType())){
-                push(new ExBool(false));
-                return;
-            }
-            push(new ExBool(obj.getData().equals(obj1.getData())));
-        }else if(bc instanceof BigCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
-            if(!obj.getType().equals(obj1.getType())){
-                push(new ExBool(false));
-                return;
-            }
 
-            push(new ExBool(Double.parseDouble(obj1.getData())>Double.parseDouble(obj.getData())));
-        } else if(bc instanceof LessCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
+        try {
+            if (bc instanceof AddCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj instanceof ExString || obj1 instanceof ExString) {
+                    push(new ExString(obj1.getData() + obj.getData()));
+                    return;
+                }
+                if (obj instanceof ExDouble || obj1 instanceof ExDouble) {
+                    push(new ExDouble(Double.parseDouble(obj1.getData()) + Double.parseDouble(obj.getData())));
+                    return;
+                }
+                push(new ExInt(Integer.parseInt(obj1.getData()) + Integer.parseInt(obj.getData())));
+            } else if (bc instanceof SubCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj instanceof ExString || obj1 instanceof ExString) {
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能进行减数运算", bc, exeing);
+                }
+                if (obj instanceof ExDouble || obj1 instanceof ExDouble) {
+                    push(new ExDouble(Double.parseDouble(obj1.getData()) - Double.parseDouble(obj.getData())));
+                    return;
+                }
+                push(new ExInt(Integer.parseInt(obj1.getData()) - Integer.parseInt(obj.getData())));
+            } else if (bc instanceof MulCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj instanceof ExString || obj1 instanceof ExString) {
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能进行乘数运算", bc, exeing);
+                }
+                if (obj instanceof ExDouble || obj1 instanceof ExDouble) {
+                    push(new ExDouble(Double.parseDouble(obj1.getData()) * Double.parseDouble(obj.getData())));
+                    return;
+                }
+                push(new ExInt(Integer.parseInt(obj1.getData()) * Integer.parseInt(obj.getData())));
+            } else if (bc instanceof DivCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj instanceof ExString || obj1 instanceof ExString) {
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能除数减数运算", bc, exeing);
+                }
+                if (obj instanceof ExDouble || obj1 instanceof ExDouble) {
+                    push(new ExDouble(Double.parseDouble(obj1.getData()) / Double.parseDouble(obj.getData())));
+                    return;
+                }
+                push(new ExInt(Integer.parseInt(obj1.getData()) / Integer.parseInt(obj.getData())));
+            } else if (bc instanceof EquCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (!obj.getType().equals(obj1.getType())) {
+                    push(new ExBool(false));
+                    return;
+                }
+                push(new ExBool(obj.getData().equals(obj1.getData())));
+            } else if (bc instanceof BigCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
 
-            if(!obj.getType().equals(obj1.getType())){
-                push(new ExBool(false));
-                return;
-            }
-            push(new ExBool(Double.parseDouble(obj1.getData())<Double.parseDouble(obj.getData())));
-        }else if(bc instanceof BigEquCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
+                if (obj.getType().equals(ExObject.Type.STRING) || obj1.getType().equals(ExObject.Type.STRING))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能进行比较运算", bc, exeing);
 
-            if(!obj.getType().equals(obj1.getType())){
-                push(new ExBool(false));
-                return;
-            }
-            push(new ExBool(Double.parseDouble(obj1.getData())>=Double.parseDouble(obj.getData())));
-        }else if(bc instanceof LessEquCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(obj.getType().equals(ExObject.Type.STRING)||obj1.getType().equals(ExObject.Type.STRING)) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[STRING]类型的变量不能进行比较运算",bc,exeing);
-            if(!obj.getType().equals(obj1.getType())){
-                push(new ExBool(false));
-                return;
-            }
-            push(new ExBool(Double.parseDouble(obj1.getData())<=Double.parseDouble(obj.getData())));
-        }else if(bc instanceof NotCode){
-            ExObject obj = pop();
 
-            if(!obj.getType().equals(ExObject.Type.BOOL))ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"["+obj.getType()+"]类型不能进行‘非’逻辑运算",bc,exeing);
-            push(new ExBool(!Boolean.parseBoolean(obj.getData())));
-        }else if(bc instanceof AndCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(!(obj.getType().equals(ExObject.Type.BOOL)&&obj1.getType().equals(ExObject.Type.BOOL))) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[UNKNOWN]类型的变量不能进行比较运算",bc,exeing);
-            push(new ExBool(Boolean.parseBoolean(obj1.getData())&&Boolean.parseBoolean(obj.getData())));
-        } else if(bc instanceof OrCode){
-            ExObject obj = pop();
-            ExObject obj1 = pop();
-            if(!(obj.getType().equals(ExObject.Type.BOOL)&&obj1.getType().equals(ExObject.Type.BOOL))) ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR,"[UNKNOWN]类型的变量不能进行比较运算",bc,exeing);
-            push(new ExBool(Boolean.parseBoolean(obj1.getData())||Boolean.parseBoolean(obj.getData())));
+                push(new ExBool(Double.parseDouble(obj1.getData()) > Double.parseDouble(obj.getData())));
+            } else if (bc instanceof LessCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj.getType().equals(ExObject.Type.STRING) || obj1.getType().equals(ExObject.Type.STRING))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能进行比较运算", bc, exeing);
+
+                if (!obj.getType().equals(obj1.getType())) {
+                    push(new ExBool(false));
+                    return;
+                }
+                push(new ExBool(Double.parseDouble(obj1.getData()) < Double.parseDouble(obj.getData())));
+            } else if (bc instanceof BigEquCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj.getType().equals(ExObject.Type.STRING) || obj1.getType().equals(ExObject.Type.STRING))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能进行比较运算", bc, exeing);
+
+                if (!obj.getType().equals(obj1.getType())) {
+                    push(new ExBool(false));
+                    return;
+                }
+                push(new ExBool(Double.parseDouble(obj1.getData()) >= Double.parseDouble(obj.getData())));
+            } else if (bc instanceof LessEquCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (obj.getType().equals(ExObject.Type.STRING) || obj1.getType().equals(ExObject.Type.STRING))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[STRING]类型的变量不能进行比较运算", bc, exeing);
+                if (!obj.getType().equals(obj1.getType())) {
+                    push(new ExBool(false));
+                    return;
+                }
+                push(new ExBool(Double.parseDouble(obj1.getData()) <= Double.parseDouble(obj.getData())));
+            } else if (bc instanceof NotCode) {
+                ExObject obj = pop();
+
+                if (!obj.getType().equals(ExObject.Type.BOOL))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[" + obj.getType() + "]类型不能进行‘非’逻辑运算", bc, exeing);
+                push(new ExBool(!Boolean.parseBoolean(obj.getData())));
+            } else if (bc instanceof AndCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (!(obj.getType().equals(ExObject.Type.BOOL) && obj1.getType().equals(ExObject.Type.BOOL)))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[UNKNOWN]类型的变量不能进行比较运算", bc, exeing);
+                push(new ExBool(Boolean.parseBoolean(obj1.getData()) && Boolean.parseBoolean(obj.getData())));
+            } else if (bc instanceof OrCode) {
+                ExObject obj = pop();
+                ExObject obj1 = pop();
+                if (!(obj.getType().equals(ExObject.Type.BOOL) && obj1.getType().equals(ExObject.Type.BOOL)))
+                    ie.throwError(IntException.Error_Type.OPERATOR_TYPE_ERROR, "[UNKNOWN]类型的变量不能进行比较运算", bc, exeing);
+                push(new ExBool(Boolean.parseBoolean(obj1.getData()) || Boolean.parseBoolean(obj.getData())));
+            }
+        }catch (EmptyStackException s){
+            ie.throwError(IntException.Error_Type.STACK_ERROR,"运算时出现空栈异常",bc,exeing);
         }
     }
 
     public void start(){
         executing = main;
         byte jemp_index = 0;
+
         try {
             for (ListIterator<BaseCode> it = executing.getBcs().listIterator(); it.hasNext(); ) {
                 BaseCode bc = it.next();
+
+
+
                 if (jemp_index > 0) {
                     jemp_index -= 1;
                     continue;
                 }
+
                 if (bc instanceof PushCode) {
                     ExObject obj = null;
                     String data = executing.getTable().get(bc.getOpNum()).getExeData();
@@ -218,6 +233,7 @@ public class Executor {
                             }
                         }
                     }
+
 
 
                     push(obj);
@@ -313,7 +329,9 @@ public class Executor {
                     ExValue ev = new ExValue(executing.getTable().get(bc.getOpNum()).getExeData(), 1);
                     ev.setValue(pop());
                     ScriptManager.values.add(ev);
-                } else if (bc instanceof ALUCode) alu(bc,executing);
+                } else if (bc instanceof ALUCode){
+                    alu(bc,executing);
+                }
                 else if (bc instanceof JempCode) {
                     ExObject obj = pop();
                     if (obj.getType().equals(ExObject.Type.BOOL)) {
@@ -363,6 +381,7 @@ public class Executor {
                     String name = executing.getTable().get(bc.getOpNum()).getExeData();
                     ie.throwError(IntException.Error_Type.valueOf(name),"<code_throw>",bc,executing);
                 }else if(bc instanceof JmpCode){
+
                     jemp_index = bc.getOpNum();
                     continue;
                 }
@@ -504,7 +523,9 @@ public class Executor {
                     ExValue ev = new ExValue(exeing.getTable().get(bc.getOpNum()).getExeData(), 1);
                     ev.setValue(pop());
                     ScriptManager.values.add(ev);
-                } else if (bc instanceof ALUCode) alu(bc,exeing);
+                } else if (bc instanceof ALUCode){
+                    alu(bc,exeing);
+                }
                 else if (bc instanceof JempCode) {
                     ExObject obj = pop();
                     if (obj.getType().equals(ExObject.Type.BOOL)) {

@@ -8,14 +8,24 @@ import ex.openex.exception.VMException;
 import ex.exvm.obj.ExList;
 import ex.exvm.obj.ExValue;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class ScriptLoader {
+public class ScriptLoader implements Serializable {
     ArrayList<CodeOptimization.ConstTableTask> tts;
     ArrayList<BaseCode> bcs;
     ArrayList<ExValue> pre_values;
     ArrayList<ExList> pre_lists;
     ArrayList<IntCode> ints;
+    String filename;
+
+    public String getFilename(){
+        return filename;
+    }
+
+    @Serial
+    private static final long serialVersionUID = 1145141919L;
 
     ArrayList<FunctionGroup> fgs;
     String lib_name;
@@ -32,6 +42,7 @@ public class ScriptLoader {
         fgs = co.getFunctions();
         ints = co.getInts();
         lib_name = co.getFilename().split("\\.")[0];
+        this.filename = co.getFilename();
     }
 
     public ArrayList<IntCode> getInts() {

@@ -34,10 +34,12 @@ public class EXThreadManager {
     }
 
     public static void launch() {
-
         new Thread(() -> {
             for(EXThread thread:threads){
                 if(thread.getName().equals("main")){
+
+
+
                     thread.run();
                     return;
                 }
