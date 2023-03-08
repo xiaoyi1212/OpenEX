@@ -36,6 +36,16 @@
 |remove_list|list<code>列表</code>,obj<code>任意类型值</code>|void|删除列表指定元素|
 |get_list|list<code>列表</code>,int<code>索引</code>|obj|获取列表指定元素|
 
+## type(变量类型处理库)
+|函数名|参数|返回值|用法|备注|
+|cast_string|obj|string|将一个变量转换为string类型|理论来说除了list列表外都能转换成string|
+|cast_double|obj|double|将一个变量转换为double类型|仅限string int double类型|
+|cast_int|obj|int|将一个变量转换为int类型|仅限string|
+|case_bool|obj|bool|将一个变量转换为布尔值类型|仅限string|
+|is_string|obj|bool|判断一个变量是否为string类型|-|
+|is_double|obj|bool|判断一个变量是否为double类型|-|
+|is_int|obj|bool|判断一个变量是否为int类型|-|
+|is_bool|obj|bool|判断一个变量是否为bool类型|-|
 
 <hr>
 
