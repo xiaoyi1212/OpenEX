@@ -38,6 +38,7 @@
 
 ## type(变量类型处理库)
 |函数名|参数|返回值|用法|备注|
+|:---|:---|:---|:---|:---|
 |cast_string|obj|string|将一个变量转换为string类型|理论来说除了list列表外都能转换成string|
 |cast_double|obj|double|将一个变量转换为double类型|仅限string int double类型|
 |cast_int|obj|int|将一个变量转换为int类型|仅限string|
