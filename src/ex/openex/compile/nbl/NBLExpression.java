@@ -1,6 +1,7 @@
 package ex.openex.compile.nbl;
 
 
+import ex.exvm.obj.ExObject;
 import ex.openex.compile.LexToken;
 
 import java.util.ArrayList;
@@ -39,12 +40,18 @@ public class NBLExpression {
                 default: suffixList.add(t);break;
             }
         }
-        while (!opStack.isEmpty()) {suffixList.add(opStack.pop());}return suffixList;
+
+        while (!opStack.isEmpty()) {suffixList.add(opStack.pop());}
+
+
+        return suffixList;
 
     }
-    // ex:include"system";value a:"A" =  1+((2+3)*4)-5; exe.system.printf(out:a);
+
     private double calculate(ArrayList<LexToken.TokenD> ls){
+
         Stack<LexToken.TokenD> stack = new Stack<>();
+
         for(LexToken.TokenD td:ls){
             if(td.getToken().equals(LexToken.Token.DOUBLE)){
                 stack.push(td);

@@ -7,8 +7,8 @@ import java.util.HashSet;
 
 public class Main {
 
-    public static final String vm_version = "OpenEXVirtualMachine-v0.4.8:"+System.getProperty("java.vm.name")+"-"+System.getProperty("java.vm.specification.version");
-    public static final String compile_version = "EXScriptCompile-v0.2.9";
+    public static final String vm_version = "OpenEXVirtualMachine-v0.5.0:"+System.getProperty("java.vm.name")+"-"+System.getProperty("java.vm.specification.version");
+    public static final String compile_version = "EXScriptCompile-v0.3.2";
     public static VMOutputStream output;
     private static HashSet<String> str = new HashSet<>(){{
         add("exe");
@@ -28,6 +28,7 @@ public class Main {
         add("return");
         add("list");
         add("throw");
+        add("else");
     }};
 
     public static boolean isKey(String data){
@@ -39,13 +40,13 @@ public class Main {
     public static void main(String[] args) throws Exception{
 
 
-
+        /*
         args = new String[]{
-              //"-binary:debug.ebc"
-                "-filename:debug.exf",
-                "-loadlib:Native.jar"
+              //"-binary:debug.ebc",
+               "-filename:debug.exf",
+                "-CVMcompile"
         };
-
+         */
 
 
         output = new VMOutputStream();

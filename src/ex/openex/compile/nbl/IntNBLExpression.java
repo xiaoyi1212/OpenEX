@@ -1,6 +1,7 @@
 package ex.openex.compile.nbl;
 
 
+import ex.exvm.obj.ExDouble;
 import ex.openex.Main;
 import ex.openex.code.*;
 import ex.openex.compile.LexToken;
@@ -87,7 +88,9 @@ public class IntNBLExpression {
             }
         }
 
-        while (!opStack.isEmpty()) {suffixList.add(opStack.pop());}return suffixList;
+        while (!opStack.isEmpty()) {suffixList.add(opStack.pop());}
+
+        return suffixList;
     }
     public ArrayList<OutCode> calculate(CompileFile e, ArrayList<LexToken.TokenD> tds)throws VMException {
         ArrayList<OutCode> bbc = new ArrayList<>();
@@ -113,8 +116,8 @@ public class IntNBLExpression {
                     continue;
                 }else throw new VMException("The keyword appears when parsing the expression", Main.output);
             }
-            if (td.getToken().equals(LexToken.Token.NUM))
-                bbc.add(new PushOPStackOutCode(new ExInt(Integer.parseInt(td.getData()))));
+            if (td.getToken().equals(LexToken.Token.NUM)) bbc.add(new PushOPStackOutCode(new ExInt(Integer.parseInt(td.getData()))));
+            else if(td.getToken().equals(LexToken.Token.DOUBLE)) bbc.add(new PushOPStackOutCode(new ExDouble(Double.parseDouble(td.getData()))));
             else if (td.getToken().equals(LexToken.Token.KEY)) {
                 ExValue valuea = null;
                 if (e.value_names.contains(td.getData())) {
@@ -126,9 +129,9 @@ public class IntNBLExpression {
                 else if (td.getData().equals("-")) bbc.add(new SubOutCode());
                 else if (td.getData().equals("*")) bbc.add(new MulOutCode());
                 else if (td.getData().equals("/")) bbc.add(new DivOutCode());
-            } else if (td.getToken().equals(LexToken.Token.STR))
-                bbc.add(new PushOPStackOutCode(new ExString(td.getData())));
+            } else if (td.getToken().equals(LexToken.Token.STR)) bbc.add(new PushOPStackOutCode(new ExString(td.getData())));
         }
+
         return bbc;
     }
 }

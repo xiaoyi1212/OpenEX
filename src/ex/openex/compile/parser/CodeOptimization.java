@@ -5,10 +5,11 @@ import ex.openex.code.output.*;
 import ex.openex.compile.ast.AstTree;
 import ex.openex.exception.VMException;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-public class CodeOptimization {
+public class CodeOptimization implements Serializable {
     CompileFile cf;
     ArrayList<ConstTableTask> ctt;
     ArrayList<FunctionGroup> fgs;
@@ -27,7 +28,7 @@ public class CodeOptimization {
         return fgs;
     }
 
-    public static class ConstTableTask{
+    public static class ConstTableTask implements Serializable{
         byte type;
         byte index;
         byte size;
@@ -62,6 +63,14 @@ public class CodeOptimization {
 
         public byte getType() {
             return type;
+        }
+
+        public byte getIndex() {
+            return index;
+        }
+
+        public byte getSize() {
+            return size;
         }
 
         public String getExeData(){
