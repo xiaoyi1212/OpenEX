@@ -43,7 +43,7 @@ exe.system.thread("线程名","启动方法名");
 //函数参数可加算式
 exe.this.main(exe.system.memory()*2,3*(23+4));
 
-//新版支持else语句的使用,经过作者粗略测试，目前没发现BUG
+//新版支持else语句的使用,经过作者粗略测试，发现else多级嵌套时会发生漏执行BUG
 if(true|false){
 }else{
 }
